@@ -211,7 +211,7 @@ class CalcController{
 
         if(!lastNumber) lastNumber = 0; // coloco esse if para caso não tenha "lastNumber" o valor dele seja = 0. Ou seja, quando nao tiver
                                         // ultimo numero o valor do lastnumber = 0;
-            
+        //teste comentario
                     
         this.setDisplayCalc = lastNumber; // por fim, como já encontrei o ultimo numero do array eu seto ele no display.
     }
