@@ -2,6 +2,9 @@ class CalcController{
 
     constructor(){ // o metodo construtor é executado automaticamente quando tem uma instancia da classe
 
+        this._lastOperator = ''; // atributo que vai varrer o array de tras para frente e resgatar o ultimo operador
+        this._lastNumber = ''; // atributo que vai varrer o array de tras para frente e resgatar o ultimo numero
+
         this._operation = []; // crio um atributo chamado "operador" que vai pegar o operador e adicionar em um array
         this._displayCalcEl = document.querySelector("#display"); //document serve para interagir com elementos da pagina. # é usado para selecionar um id e 
         // ponto(".") serve para selecionar uma class. E o querySelector serve para selecionar esses
@@ -144,27 +147,59 @@ class CalcController{
         
     }
 
+    getResult(){ // um metodo para retornar a operação executada com a expressão contida no array
+        return eval(this._operation.join('')); // o metodo join transforma um array em string e substitui o separador pelo que quiser
+                                                // que por padrão o separador do array sao virgulas. Dessa forma, se eu colocar 
+                                                // join('') ele vai substituir a virgula por nada/vazio. Agora se eu colocasse
+                                                // join('AA') ele iria colocar um AA no separador do array. Ou seja, 
+                                                // se o array é [1,+,2] utilizando join('AA') ficaria 1AA+AA2 e fazendo join('')
+                                                // ele nao vai ter nenhum separador ficando 1+2. Apos aplicar o join eu faço um
+                                                // eval para calcular a expressão que ta no array. Ou seja, juntando o metodo
+                                                // calc() com o metodo "pushOperation()" ele vai realizar um calculo dos 3 primeiros
+                                                //elementos, quardar o resultado e guardar o valor que foi digitado por ultimo
+    }
+ 
     calc(){
 
         let last = '' //crio uma variavel last que vai receber inicialmente um valor vazio para que possa trabalhar com ela nos proximos ifs.
+
+        if(this._operation.length < 3){ // crio uma nova condição para verificar se o usuario digitou igual antes de ter 3 elementos no array
+                                        // para fazer o calculo, ou seja, o usuario apertou "5 + 3 =" dessa forma o array ficou [5 + 3] e 
+                                        // apos o igual ficou apenas [8] pois o sistema executou o eval e somou os dois primeiros numeros.
+
+            let firstNumber = this._operation[0]; // dessa forma eu crio uma variavel "firsTnumber" para armazenar o primeiro numero do array
+                                                    // que no caso é o proprio [8]
+            this._operation = [firstNumber, this._lastOperator, this._lastNumber]; // em seguida monto novamente o array com o firstNumber.
+                                                                                    // ultimo operador e ultimo numero ficando [8, "+", 3]
+
+        }
 
         if(this._operation.length > 3){ // aqui eu faço uma condição para caso o array possua mais de 3 elementos ele deletar o ultimo
                                         // e armazenar esse na variavel last;
 
            last = this._operation.pop();  // aqui uso o pop para excluir o ultimo registro informado no array. Mas antes de excluir
                                             // crio um variavel chamada "last" que guardar esse valor deixando ela de ser vazio
-        }
+            
+            this._lastOperator = this.getLastItem(true); // chamo o metodo "getLastItem()" passando true para rodar o array e pegar o ultimo operador e armazenar na variavel "lastOperator"                                
+            
+            this._lastNumber = this.getResult(); // apos excluir o ultimo valor do array e fazer o calculo através do metodo "getResult"
+                                                // o sistema irá guardar esse resultado no atributo "_lastNumber"
+        
+        }else if(this._operation.length == 3){ // faço um else if para caso NAO caia no if acima, ou seja, se nao tiver mais de 3
+                                                // elementos no array ele cair nesse else e if que vai tratar quando so tiver 3 elementos
+
+            this._lastOperator = this.getLastItem(true); // com isso ele vai pegar o ultimo operador armazenar na variavel
+            this._lastNumber = this.getLastItem(false); // e o ultimo numero e o ultimo numero armazenar na variavel
+            
+            /*OBS: isso vai servir para caso o usuario digite 3+2 e aperte "=" com isso so vai ter 3 elementos onde o lastOperator vai ser
+            + e o lastnumber = 2. Dessa forma, ao apertar '=' novamente o sistema vai fazer o resultado da 
+            operacao (5) + (lastOperator) + (lastNumber)*/
+
+            }         
         
         
-        let result = eval(this._operation.join('')); // o metodo join transforma um array em string e substitui o separador pelo que quiser
-                                                     // que por padrão o separador do array sao virgulas. Dessa forma, se eu colocar 
-                                                      // join('') ele vai substituir a virgula por nada/vazio. Agora se eu colocasse
-                                                     // join('AA') ele iria colocar um AA no separador do array. Ou seja, 
-                                                 // se o array é [1,+,2] utilizando join('AA') ficaria 1AA+AA2 e fazendo join('')
-                                                 // ele nao vai ter nenhum separador ficando 1+2. Apos aplicar o join eu faço um
-                                                 // eval para calcular a expressão que ta no array. Ou seja, juntando o metodo
-                                                // calc() com o metodo "pushOperation()" ele vai realizar um calculo dos 3 primeiros
-                                                //elementos, quardar o resultado e guardar o valor que foi digitado por ultimo
+        
+        let result = this.getResult(); 
         
             if(last == '%'){ // faço um if para verificar se o ultimo operador digitado (variavel last) é uma porcentagem.
 
@@ -194,24 +229,58 @@ class CalcController{
         } 
     }
 
-    setLastNumberToDisplay(){ // crio um metodo para setar o ultimo numero digitado no display
+    getLastItem(isOperation = true){ // crio um metodo para retornar o ultimo numero ou ultimo operador presente no array que por padrão
+                                    // ele vai trazer o ultimo operador
 
-        let lastNumber;
-        
-        for(let i = this._operation.length-1; i >= 0; i--){ // faço um for para varrer o array da ulltima posição ate o 0
-            if(!this.isOperation(this._operation[i])){ // e cada volta eu faço um if para verificar se NAO é um operador. Salientando
-                                                        //a exclamação (!) dentro do if esta negando a operação, ou seja, esse if lê-se
-                                                        // se NAO o this._operation[i] NAO é um operador
+         let lastItem; // crio a variavel lastItem para armazenar ou o ultimo operador ou ultimo numero
+
+        for(let i = this._operation.length - 1; i >= 0; i--){ // faço um for para varrer o array da ulltima posição ate o 0
+            
+            if(isOperation) { // crio esse if para caso seja um operador ele armazenar na variavel LastNumber
+            
+                if(this.isOperation(this._operation[i])){ // e cada volta eu faço um if para verificar se é um operador. Salientando
+                                                     
                 
-                lastNumber = this._operation[i]; // se nao é um operador então é um numero, dessa forma, como ele varreu o array de tras
-                break;                          // pra frente esse numero so pode ser o ultimo que estava presente no array.
+                lastItem = this._operation[i]; // se nao é um operador então é um numero, dessa forma, como ele varreu o array de tras
+                                               // pra frente esse numero so pode ser o ultimo que estava presente no array.
+                break;                        
                  
-            }
+                 }
+              
+           } else{ // e caso não ele armazene o ultimo valor diferente de operador, que no caso pode ser um numero
+                if(!this.isOperation(this._operation[i])){ // aqui eu faço a mesma operação NEGANDO(!) para varrer o array no for e pegar
+                                                            // o ultimo valor que NÃO seja um operador
+                    
+                    lastItem = this._operation[i]; // E como isso armazeno na variavel ultimo Item. 
+                    break;
+                }
+            }     
+
         }
 
-        if(!lastNumber) lastNumber = 0; // coloco esse if para caso não tenha "lastNumber" o valor dele seja = 0. Ou seja, quando nao tiver
-                                        // ultimo numero o valor do lastnumber = 0;
-        //teste comentario
+        if(!lastItem){ // faço esse IF fora do for para caso ele não consiga achar o ultimo item (LastItem)
+
+            lastItem = (isOperation) ? this._lastOperator : this._lastNumber; //Isso é um IF ternario que lê-se lastItem = a um operador "?""
+                                                                             // se sim lastItem = ao atributo "this._lastOperation" se nao
+                                                                             // ":" lastItem = this._lastNumber. Note que se ele não achar algum dos itens no for (ou operador ou numero) ele vai setar
+                                                                             // lastItem como sendo o ultimo valor da memoria
+                                                                            
+
+        }
+        
+        return lastItem; //Dessa forma, esse metodo, caso passe como parametro "TRUE" ele vai cair no if para 
+                        //armazenar o operador na variavel "lastItem" e se passar o parametro "FALSE" ele vai cair no else e vai retornar 
+                        // um valor diferente de operador provavelmente um numero.
+    }
+    
+    setLastNumberToDisplay(){ // crio um metodo para setar o ultimo numero digitado no display
+
+        let lastNumber = this.getLastItem(false); // chamo o metodo de capturar o ultimo item desejado (getLastItem) e como quero o ultimo 
+                                                // numero passo ele como false
+    
+        if(!lastNumber) lastNumber = 0; // coloco esse if para caso não tenha(!) "lastNumber" o valor dele seja = 0. Ou seja, quando nao tiver
+                                        // ultimo numero o valor do lastnumber = 0. Isso serve para a calculadora iniciar com zero
+        
                     
         this.setDisplayCalc = lastNumber; // por fim, como já encontrei o ultimo numero do array eu seto ele no display.
     }
